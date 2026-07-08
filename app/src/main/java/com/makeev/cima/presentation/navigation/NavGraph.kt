@@ -1,6 +1,5 @@
 package com.makeev.cima.presentation.navigation
 
-import android.os.Bundle
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
