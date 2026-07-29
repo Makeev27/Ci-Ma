@@ -4,6 +4,17 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2026-07-23T21:18:57.291357500Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=45cb3531" />
+            </handle>
+          </Target>
+        </DropdownSelection>
+        <DialogSelection />
+      </SelectionState>
+      <SelectionState runConfigName="Dark Theme - DetailScreenPreview">
+        <option name="selectionMode" value="DROPDOWN" />
         <DropdownSelection timestamp="2026-07-08T14:45:27.930452900Z">
           <Target type="DEFAULT_BOOT">
             <handle>

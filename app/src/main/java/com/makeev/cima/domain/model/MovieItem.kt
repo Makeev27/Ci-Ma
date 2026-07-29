@@ -1,4 +1,4 @@
-package com.makeev.cima.domain
+package com.makeev.cima.domain.model
 
 data class MovieItem(
     val movieId: Int = 0,

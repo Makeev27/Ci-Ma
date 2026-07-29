@@ -1,8 +1,11 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.kotlinx.serialization)
 }
 
 android {
@@ -13,6 +16,7 @@ android {
         }
     }
 
+
     defaultConfig {
         applicationId = "com.makeev.cima"
         minSdk = 24
@@ -22,6 +26,16 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val localProperties = Properties()
+        val localFile = rootProject.file("local.properties")
+        if (localFile.exists()) {
+            localProperties.load(localFile.inputStream())
+        }
+        val tmdbApiKey = localProperties.getProperty("TMDB_API_KEY") ?: ""
+        buildConfigField("String", "TMDB_API_KEY", "\"$tmdbApiKey\"")
+        val tmdbBearerToken = localProperties.getProperty("TMDB_BEARER_TOKEN") ?: ""
+        buildConfigField("String", "TMDB_BEARER_TOKEN", "\"$tmdbBearerToken\"")
     }
 
     buildTypes {
@@ -39,6 +53,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -60,9 +75,20 @@ dependencies {
     implementation(libs.coil.svg)
 
     //Navigation
-    implementation("androidx.navigation:navigation-compose:2.9.8")
-    implementation("androidx.navigation:navigation-fragment:2.9.8")
-    implementation("androidx.navigation:navigation-ui:2.9.8")
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation.fragment)
+    implementation(libs.androidx.navigation.ui)
+
+    //Kotlinx-Serialization
+    implementation(libs.kotlinx.serialization.json)
+
+    //okhttp
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+
+    //Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.kotlinx.serialization.converter)
 
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(platform(libs.androidx.compose.bom))

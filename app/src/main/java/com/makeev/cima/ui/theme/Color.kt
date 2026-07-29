@@ -22,3 +22,5 @@ val SecondaryContainer = Color(0xFF1f1d2b)
 
 val OnSecondaryContainer = Color(0xFF312f3d)
 
+val OnTertiaryContainer = Color(0xFF169c9b)
+
