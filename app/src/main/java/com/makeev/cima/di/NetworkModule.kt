@@ -9,9 +9,11 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import okhttp3.dnsoverhttps.DnsOverHttps
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
@@ -54,8 +56,14 @@ interface NetworkModule {
                     .build()
                 chain.proceed(newRequest)
             }
+            val bootstrapClient = OkHttpClient.Builder().build()
+            val dns = DnsOverHttps.Builder()
+                .client(bootstrapClient)
+                .url("https://dns.google/dns-query".toHttpUrl())
+                .build()
 
             return OkHttpClient.Builder()
+                .dns(dns)
                 .addInterceptor(authInterceptor)
                 .addInterceptor(httpLoggingInterceptor)
                 .connectTimeout(5, TimeUnit.SECONDS)

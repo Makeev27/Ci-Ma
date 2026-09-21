@@ -1,12 +1,11 @@
 package com.makeev.cima.utils
 
-import com.makeev.cima.domain.model.MovieCast
+import com.makeev.cima.data.remote.dto.response.MovieDetailResponse
 import com.makeev.cima.domain.model.MovieDetails
-import com.makeev.cima.domain.model.MovieSimilar
 import com.makeev.cima.domain.model.Person
 import com.makeev.cima.domain.model.PopularMovie
 import com.makeev.cima.domain.model.TrendingMovie
-import com.makeev.cima.presentation.screens.detail.MovieSimilarUiModel
+import com.makeev.cima.presentation.screens.detail.MovieRecommendationsUiModel
 import com.makeev.cima.presentation.screens.model.MovieCastUiModel
 import com.makeev.cima.presentation.screens.model.MovieDetailUiModel
 import com.makeev.cima.presentation.screens.model.MovieUiModel
@@ -15,22 +14,29 @@ import java.util.Locale
 
 
 private const val IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"
-fun MovieDetails.toMovieDetailUiModel(): MovieDetailUiModel {
+private const val VIDEO_BASE_URL = "https://www.youtube.com/watch?v="
+fun MovieDetails.toMovieUiModel(): MovieDetailUiModel {
     return MovieDetailUiModel(
         title = title,
         releaseDate = getReleaseYear(releaseDate),
         runtime = runtimeToHours(runtime),
         voteAverage = voteAverage.roundToOneDecimal(),
-        tagline = tagline,
+        tagline = tagline.orEmpty(),
         overview = overview,
         productionCountries = productionCountries,
-        id = id.toString(),
+        id = id,
         budget = "$budget $",
-        posterPath = posterPath
+        posterPath = "${IMAGE_BASE_URL}${this.posterPath}",
+        belongsToCollection = belongsToCollection,
+        videos = "${VIDEO_BASE_URL}${this}",
+        recommendations = recommendations,
+        credits = credits,
+        genres = genres,
+        images = images
     )
 }
 
-fun TrendingMovie.toMovieDetailUiModel(): MovieUiModel {
+fun TrendingMovie.toMovieUiModel(): MovieUiModel {
     return MovieUiModel(
         id = id,
         posterPath = "${IMAGE_BASE_URL}${this.posterPath}}",
@@ -71,7 +77,6 @@ fun Person.toPersonUiModel(): PersonUiModel {
         birthday = birthday,
         deathday = deathday,
         gender = when (gender) {
-            0 -> "Н/Д"
             1 -> "Женский"
             2 -> "Мужской"
             3 -> "Небинарный"
@@ -91,24 +96,23 @@ fun Person.toPersonUiModel(): PersonUiModel {
     )
 }
 
-fun MovieCast.toMovieCastUiModel(): MovieCastUiModel {
+fun MovieDetailResponse.Credits.Cast.toMovieCastUiModel(): MovieCastUiModel {
     return MovieCastUiModel(
-        character = character,
-        name = name,
-        popularity = popularity,
-        profilePath = "${IMAGE_BASE_URL}${this.profilePath}",
+        character = character.orEmpty(),
+        name = name.orEmpty(),
+        popularity = popularity ?: 0.0,
+        profilePath = profilePath?.let { path -> "${IMAGE_BASE_URL}$path" },
         id = id
     )
 }
 
-fun MovieSimilar.toMovieSimilarUiModel(): MovieSimilarUiModel {
-    return MovieSimilarUiModel(
+fun MovieDetailResponse.Recommendations.MovieRecommendations.toMovieRecommendationsUiModel(): MovieRecommendationsUiModel {
+    return MovieRecommendationsUiModel(
         id = id,
-        title = title,
-        posterPath = "${IMAGE_BASE_URL}${this.posterPath}",
-        voteAverage = voteAverage.roundToOneDecimal(),
+        title = title.orEmpty(),
+        posterPath = posterPath?.let { path -> "${IMAGE_BASE_URL}$path" },
+        voteAverage = (voteAverage ?: 0.0).roundToOneDecimal(),
     )
-
 }
 
 fun getReleaseYear(date: String): String {

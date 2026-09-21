@@ -1,10 +1,10 @@
 package com.makeev.cima.data.mapper
 
 import com.makeev.cima.data.remote.dto.MovieCastDto
-import com.makeev.cima.data.remote.dto.MovieDetailDto
 import com.makeev.cima.data.remote.dto.MovieSimilarDto
 import com.makeev.cima.data.remote.dto.PopularMovieDto
 import com.makeev.cima.data.remote.dto.TrendingMovieDto
+import com.makeev.cima.data.remote.dto.response.MovieDetailResponse
 import com.makeev.cima.data.remote.dto.response.PersonResponse
 import com.makeev.cima.domain.model.MovieCast
 import com.makeev.cima.domain.model.MovieDetails
@@ -40,7 +40,7 @@ fun TrendingMovieDto.toTrendingMovie(): TrendingMovie {
     )
 }
 
-fun MovieDetailDto.toMovieDetails(): MovieDetails {
+fun MovieDetailResponse.toMovieDetails(): MovieDetails {
     return MovieDetails(
         title = title,
         releaseDate = releaseDate.orEmpty(),
@@ -51,7 +51,15 @@ fun MovieDetailDto.toMovieDetails(): MovieDetails {
         productionCountries = productionCountries.orEmpty(),
         id = id,
         budget = budget ?: 0,
-        posterPath = "${IMAGE_BASE_URL}${this.posterPath}"
+        posterPath = "${IMAGE_BASE_URL}${this.posterPath}",
+        credits = credits,
+        belongsToCollection = belongsToCollection,
+        genres = genres.map { it.name },
+        images = images.posters.mapNotNull { poster ->
+            poster.filePath?.let { path -> "${IMAGE_BASE_URL}$path" }
+        },
+        recommendations = recommendations,
+        videos = videos.videoResults.map { it.key }
     )
 }
 

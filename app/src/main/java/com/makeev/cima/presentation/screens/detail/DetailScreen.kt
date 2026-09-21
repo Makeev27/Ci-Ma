@@ -51,6 +51,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.makeev.cima.R
@@ -58,6 +59,9 @@ import com.makeev.cima.presentation.screens.home.ScreenLoading
 import com.makeev.cima.presentation.screens.model.MovieCastUiModel
 import com.makeev.cima.presentation.screens.model.MovieDetailUiModel
 import com.makeev.cima.ui.theme.CiMaTheme
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 
 @Composable
 fun DetailScreen(
@@ -340,9 +344,8 @@ fun DetailScreenPreview() {
                         "YEEEEAH",
                         "asdasdasdasdasdsa",
                         emptyList(),
-                        "0",
-                        "1000000$",
-                        "/DDeITcCpnBd0CkAIRPhggy9bt5.jpg"
+                        budget = "1000000$",
+                        posterPath = "/DDeITcCpnBd0CkAIRPhggy9bt5.jpg"
                     ),
                     listOf(
                         MovieCastUiModel(
@@ -354,7 +357,7 @@ fun DetailScreenPreview() {
                         )
                     ),
                     listOf(
-                        MovieSimilarUiModel(
+                        MovieRecommendationsUiModel(
                             0,
                             "JohnWick",
                             "",
@@ -442,33 +445,38 @@ fun DetailPoster(
                 .blur(radius = 50.dp)
                 .alpha(0.6f)
         )
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            AsyncImage(
-                model = movieDetails.posterPath,
-                placeholder = painterResource(R.drawable.ic_launcher_background),
-                fallback = painterResource(R.drawable.ic_launcher_background),
-                error = painterResource(R.drawable.ic_launcher_background),
-                contentDescription = "Movie Poster",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .width(180.dp)
-                    .height(250.dp)
-                    .clip(RoundedCornerShape(20.dp))
-            )
-            Text(
-                textAlign = TextAlign.Center,
-                text = movieDetails.title,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onBackground,
-                maxLines = 2
-            )
-        }
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                AsyncImage(
+                    model = movieDetails.posterPath,
+                    placeholder = painterResource(R.drawable.ic_launcher_background),
+                    fallback = painterResource(R.drawable.ic_launcher_background),
+                    error = painterResource(R.drawable.ic_launcher_background),
+                    contentDescription = "Movie Poster",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .clickable(
+                            onClick = {
+
+                            }
+                        )
+                        .padding(innerPadding)
+                        .width(180.dp)
+                        .height(250.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                )
+                Text(
+                    textAlign = TextAlign.Center,
+                    text = movieDetails.title,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    maxLines = 2
+                )
+            }
 
     }
 }
@@ -517,7 +525,7 @@ fun HorizontalMovieCast(
 @Composable
 fun HorizontalSimilarMovie(
     modifier: Modifier = Modifier,
-    movie: MovieSimilarUiModel,
+    movie: MovieRecommendationsUiModel,
     onMovieClick: (Int) -> Unit
 ) {
     Card(
@@ -562,6 +570,24 @@ fun HorizontalSimilarMovie(
             }
         }
     }
+}
+
+@Composable
+fun YoutubeTrailerPlayer(
+    modifier: Modifier = Modifier,
+    detailUiModel: MovieDetailUiModel
+) {
+    AndroidView(modifier = Modifier.clip(RoundedCornerShape(12.dp)),
+        factory = {context ->
+            YouTubePlayerView(context).apply {
+                addYouTubePlayerListener(object: AbstractYouTubePlayerListener() {
+                    override fun onReady(youTubePlayer: YouTubePlayer) {
+                        youTubePlayer.loadVideo(detailUiModel.videos, 0.0f)
+                    }
+                })
+
+            }
+        })
 }
 
 

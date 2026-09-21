@@ -59,6 +59,12 @@ android {
 
 dependencies {
 
+    //Shimmer
+    implementation(libs.compose.shimmer)
+
+    //android youtube player
+    implementation(libs.core)
+
     //Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
@@ -85,6 +91,7 @@ dependencies {
     //okhttp
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
+    implementation(libs.okhttp.dnsoverhttps)
 
     //Retrofit
     implementation(libs.retrofit)

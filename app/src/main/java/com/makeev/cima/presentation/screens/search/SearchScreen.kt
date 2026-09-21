@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,10 +25,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -40,7 +41,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -71,83 +71,127 @@ fun SearchScreen(
         focusRequester.requestFocus()
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    TextField(
-                        value = query,
-                        onValueChange = viewModel::onQueryChange,
-                        placeholder = { Text("Поиск...") },
-                        singleLine = true,
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
-                        ),
-                        trailingIcon = {
-                            if (query.isNotEmpty()) {
-                                IconButton(onClick = { viewModel.clearQuery(query) }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Очистить")
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
-                    }
-                }
-            )
-        }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            when (val state = uiState) {
-                is SearchUiState.Idle -> {
+    SearchScreenContent(
+        onBackClick = onBackClick,
+        onMovieClick = onMovieClick,
+        onClearClick = viewModel::clearQuery,
+        uiState = uiState,
+        query = query,
+        focusRequester = focusRequester,
+        onValueChange = viewModel::onQueryChange
+    )
 
-                }
-                is SearchUiState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-                is SearchUiState.Empty -> {
-                    Text(
-                        text = "Ничего не найдено",
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-                is SearchUiState.Error -> {
-                    Text(
-                        text = state.message,
-                        modifier = Modifier.align(Alignment.Center),
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-                is SearchUiState.Success -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(vertical = 16.dp),
-                    ) {
-                        items(state.movies, key = { val id = it.id
-                            id
-                        }) { movie ->
-                            VerticalMovie(
-                                movie = movie,
-                                onMovieClick = { onMovieClick(movie.id) }
-                            )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchScreenContent(
+    modifier: Modifier = Modifier,
+    onBackClick: () -> Unit,
+    onMovieClick: (Int) -> Unit,
+    onClearClick: (String) -> Unit,
+    uiState: SearchUiState,
+    query: String,
+    focusRequester: FocusRequester = remember { FocusRequester() },
+    onValueChange: (String) -> Unit
+) {
+    Surface(
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    colors = TopAppBarDefaults
+                        .topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
+                    title = {
+                        TextField(
+                            shape = RoundedCornerShape(24.dp),
+                            value = query,
+                            onValueChange = onValueChange,
+                            placeholder = { Text("Поиск...") },
+                            singleLine = true,
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                focusedIndicatorColor = MaterialTheme.colorScheme.secondaryContainer,
+                                unfocusedIndicatorColor = MaterialTheme.colorScheme.secondaryContainer
+                            ),
+                            trailingIcon = {
+                                if (query.isNotEmpty()) {
+                                    IconButton(onClick = { onClearClick(query) }) {
+                                        Icon(Icons.Default.Close, contentDescription = "Очистить")
+                                    }
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .focusRequester(focusRequester)
+                        )
+                    }
+                )
+            }
+        ) { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                when (uiState) {
+                    is SearchUiState.Idle -> {
+
+                    }
+
+                    is SearchUiState.Loading -> {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    }
+
+                    is SearchUiState.Empty -> {
+                        Text(
+                            text = "Ничего не найдено",
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+
+                    is SearchUiState.Error -> {
+                        Text(
+                            text = uiState.message,
+                            modifier = Modifier.align(Alignment.Center),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+
+                    is SearchUiState.Success -> {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(vertical = 16.dp),
+                        ) {
+                            items(uiState.movies, key = {
+                                val id = it.id
+                                id
+                            }) { movie ->
+                                VerticalMovie(
+                                    movie = movie,
+                                    onMovieClick = { onMovieClick(movie.id) }
+                                )
+                            }
                         }
                     }
                 }
             }
         }
+
+    }
+
+
+}
+
+@Preview(showBackground = true, name = "Dark Theme", showSystemUi = true)
+@Composable
+fun SearchScreenPreview() {
+    CiMaTheme(darkTheme = true) {
+        SearchScreenContent(
+            onMovieClick = {}, onBackClick = {}, uiState = SearchUiState.Idle, onClearClick = {},
+            onValueChange = {}, query = ""
+        )
     }
 }
 
@@ -155,9 +199,11 @@ fun SearchScreen(
 @Composable
 fun VerticalMoviePreview() {
     CiMaTheme(darkTheme = true) {
-        Scaffold(modifier = Modifier.fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)) {
-                innerPadding ->
+        Scaffold(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) { innerPadding ->
             VerticalMovie(
                 modifier = Modifier.padding(innerPadding),
                 movie = MovieUiModel(
@@ -173,6 +219,14 @@ fun VerticalMoviePreview() {
 
         }
     }
+}
+
+@Composable
+fun SearchBar(
+    modifier: Modifier,
+    query: String
+) {
+
 }
 
 @Composable

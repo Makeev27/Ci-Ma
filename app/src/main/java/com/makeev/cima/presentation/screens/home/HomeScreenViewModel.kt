@@ -6,6 +6,7 @@ import com.makeev.cima.domain.usecase.GetPopularMovieUseCase
 import com.makeev.cima.domain.usecase.GetTrendingMovieUseCase
 import com.makeev.cima.presentation.screens.model.MovieUiModel
 import com.makeev.cima.utils.toMovieDetailUiModel
+import com.makeev.cima.utils.toMovieUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
@@ -48,7 +49,7 @@ class HomeScreenViewModel @Inject constructor(
                     val trendingDeferred = async { getTrendingMovieUseCase() }
 
                     val popularMovies = popularDeferred.await().map { it.toMovieDetailUiModel() }
-                    val trendingMovies = trendingDeferred.await().map { it.toMovieDetailUiModel() }
+                    val trendingMovies = trendingDeferred.await().map { it.toMovieUiModel() }
 
                     _uiState.value = HomeScreenUiState.Success(
                         popularMovie = popularMovies,

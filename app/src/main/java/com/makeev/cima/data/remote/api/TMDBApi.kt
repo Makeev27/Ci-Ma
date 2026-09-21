@@ -1,7 +1,7 @@
 package com.makeev.cima.data.remote.api
 
-import com.makeev.cima.data.remote.dto.MovieDetailDto
 import com.makeev.cima.data.remote.dto.response.MovieCreditsResponse
+import com.makeev.cima.data.remote.dto.response.MovieDetailResponse
 import com.makeev.cima.data.remote.dto.response.MovieSimilarResponse
 import com.makeev.cima.data.remote.dto.response.PersonResponse
 import com.makeev.cima.data.remote.dto.response.PopularMovieResponse
@@ -18,10 +18,12 @@ interface TMDBApi {
     @GET("trending/movie/week")
     suspend fun getTrendingMovie(): TrendingMovieResponse
 
+    //Movies
     @GET("movie/{movie_id}")
     suspend fun getMovieDetails(
-        @Path("movie_id") movieId: Int
-    ): MovieDetailDto
+        @Path("movie_id") movieId: Int,
+        @Query("append_to_response") appendToResponse: String = "credits,recommendations,images,videos"
+    ): MovieDetailResponse
 
     @GET("movie/{movie_id}/credits")
     suspend fun getMovieCredits(
