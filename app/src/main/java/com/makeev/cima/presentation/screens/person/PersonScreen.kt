@@ -49,7 +49,7 @@ import coil3.compose.AsyncImage
 import com.makeev.cima.R
 import com.makeev.cima.presentation.screens.detail.DetailScreenError
 import com.makeev.cima.presentation.screens.home.ScreenLoading
-import com.makeev.cima.presentation.screens.model.PersonUiModel
+import com.makeev.cima.presentation.screens.model.PersonDetailUiModel
 
 @Composable
 fun PersonScreen(
@@ -265,7 +265,7 @@ fun PersonScreenContent(
 @Composable
 fun PersonPoster(
     modifier: Modifier = Modifier,
-    person: PersonUiModel,
+    person: PersonDetailUiModel,
     innerPadding: PaddingValues
 ) {
     Box(

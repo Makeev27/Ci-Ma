@@ -1,15 +1,16 @@
 package com.makeev.cima.domain.repository
 
+import com.makeev.cima.domain.model.Movie
 import com.makeev.cima.domain.model.MovieCast
 import com.makeev.cima.domain.model.MovieDetails
 import com.makeev.cima.domain.model.MovieSimilar
+import com.makeev.cima.domain.model.MultiSearchItem
 import com.makeev.cima.domain.model.Person
 import com.makeev.cima.domain.model.PopularMovie
 import com.makeev.cima.domain.model.TrendingMovie
+import com.makeev.cima.domain.model.TvShow
 
 interface MovieRepository {
-
-//    fun getAllMovies(): Flow<List<MovieItem>>
 
     suspend fun getPopularMovies(): List<PopularMovie>
 
@@ -23,6 +24,13 @@ interface MovieRepository {
 
     suspend fun getPerson(personId: Int): Person
 
-    suspend fun searchMovie(query: String): List<PopularMovie>
 
+    //Search
+    suspend fun searchMulti(query: String): List<MultiSearchItem>
+
+    suspend fun searchMovie(query: String): List<Movie>
+
+    suspend fun searchPerson(query: String): List<Person>
+
+    suspend fun searchTv(query: String): List<TvShow>
 }

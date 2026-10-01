@@ -8,5 +8,8 @@ data class MovieUiModel(
     val title: String,
     val voteAverage: String,
     val voteCount: Int = 0,
-    val popularity: Double = 0.0
-)
+    val popularity: Double = 0.0,
+    val runtime: String = "",
+    val genres: List<String> = emptyList()
+
+) : MultiSearchUiItem

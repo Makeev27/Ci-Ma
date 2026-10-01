@@ -19,7 +19,7 @@ android {
 
     defaultConfig {
         applicationId = "com.makeev.cima"
-        minSdk = 24
+        minSdk = 25
         //noinspection OldTargetApi
         targetSdk = 36
         versionCode = 1
@@ -59,6 +59,7 @@ android {
 
 dependencies {
 
+    implementation(libs.compose.material3)
     //Shimmer
     implementation(libs.compose.shimmer)
 

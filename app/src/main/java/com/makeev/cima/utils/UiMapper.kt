@@ -1,15 +1,19 @@
 package com.makeev.cima.utils
 
 import com.makeev.cima.data.remote.dto.response.MovieDetailResponse
+import com.makeev.cima.domain.model.Movie
 import com.makeev.cima.domain.model.MovieDetails
 import com.makeev.cima.domain.model.Person
 import com.makeev.cima.domain.model.PopularMovie
 import com.makeev.cima.domain.model.TrendingMovie
+import com.makeev.cima.domain.model.TvShow
 import com.makeev.cima.presentation.screens.detail.MovieRecommendationsUiModel
 import com.makeev.cima.presentation.screens.model.MovieCastUiModel
 import com.makeev.cima.presentation.screens.model.MovieDetailUiModel
 import com.makeev.cima.presentation.screens.model.MovieUiModel
+import com.makeev.cima.presentation.screens.model.PersonDetailUiModel
 import com.makeev.cima.presentation.screens.model.PersonUiModel
+import com.makeev.cima.presentation.screens.model.TvShowUiModel
 import java.util.Locale
 
 
@@ -71,8 +75,61 @@ fun PopularMovie.toMovieUiModel(): MovieUiModel {
     )
 }
 
+fun Movie.toMovieUiModel(): MovieUiModel {
+    return MovieUiModel(
+        title = title,
+        releaseDate = getReleaseYear(releaseDate),
+        runtime = runtimeToHours(runtime),
+        voteAverage = voteAverage.roundToOneDecimal(),
+        overview = overview,
+        id = id,
+        posterPath = "${IMAGE_BASE_URL}${this.posterPath}",
+        genres = genres,
+    )
+}
+
 fun Person.toPersonUiModel(): PersonUiModel {
     return PersonUiModel(
+        birthday = birthday,
+        deathday = deathday,
+        gender = when (gender) {
+            1 -> "Женский"
+            2 -> "Мужской"
+            3 -> "Небинарный"
+            else -> "Н/Д"
+        },
+        id = id,
+        knownForDepartment = when (knownForDepartment) {
+            "Acting" -> "Актер"
+            else -> ""
+        },
+        name = name,
+        placeOfBirth = placeOfBirth,
+        profilePath = "${IMAGE_BASE_URL}${this.profilePath}"
+    )
+}
+
+fun TvShow.toTvShowUiModel(): TvShowUiModel {
+    return TvShowUiModel(
+        episodeRunTime = episodeRunTime,
+        genres = genres,
+        id = id,
+        languages = languages,
+        name = name,
+        numberOfEpisodes = numberOfEpisodes,
+        originalName = originalName,
+        popularity = popularity,
+        posterPath = "${IMAGE_BASE_URL}${this.posterPath}",
+        voteAverage = voteAverage.roundToOneDecimal(),
+        firstAirDate = firstAirDate,
+        lastAirDate = lastAirDate,
+        overview = overview
+    )
+}
+
+
+fun Person.toPersonDetailUiModel(): PersonDetailUiModel {
+    return PersonDetailUiModel(
         biography = biography,
         birthday = birthday,
         deathday = deathday,

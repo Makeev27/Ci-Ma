@@ -4,8 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.makeev.cima.domain.usecase.GetPersonUseCase
-import com.makeev.cima.presentation.screens.model.PersonUiModel
-import com.makeev.cima.utils.toPersonUiModel
+import com.makeev.cima.presentation.screens.model.PersonDetailUiModel
+import com.makeev.cima.utils.toPersonDetailUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
@@ -48,7 +48,7 @@ class PersonScreenViewModel @Inject constructor(
 
                     val personDeferred = async { getPersonUseCase(personId) }
 
-                    val person = personDeferred.await().toPersonUiModel()
+                    val person = personDeferred.await().toPersonDetailUiModel()
 
                     _uiState.value = PersonScreenUiState.Success(
                         person
@@ -74,7 +74,7 @@ sealed interface PersonScreenUiState {
     object Loading : PersonScreenUiState
 
     data class Success(
-        val person: PersonUiModel,
+        val person: PersonDetailUiModel,
         val isRefreshing: Boolean = false
     ) : PersonScreenUiState
 

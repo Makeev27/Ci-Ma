@@ -1,7 +1,7 @@
 package com.makeev.cima.presentation.screens.search
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,37 +10,38 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
+import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SearchBarState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopSearchBar
+import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -49,36 +50,69 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.makeev.cima.R
+import com.makeev.cima.domain.model.SearchCategory
 import com.makeev.cima.presentation.screens.home.DrawRating
 import com.makeev.cima.presentation.screens.model.MovieUiModel
+import com.makeev.cima.presentation.screens.model.MultiSearchUiItem
+import com.makeev.cima.presentation.screens.model.PersonUiModel
+import com.makeev.cima.presentation.screens.model.TvShowUiModel
 import com.makeev.cima.ui.theme.CiMaTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
+    modifier: Modifier = Modifier,
     onBackClick: () -> Unit,
-    onMovieClick: (Int) -> Unit,
+    onItemClick: (Int) -> Unit,
     viewModel: SearchScreenViewModel = hiltViewModel()
 ) {
-    val query by viewModel.searchQuery.collectAsState()
-    val uiState by viewModel.uiState.collectAsState()
-    val focusRequester = remember { FocusRequester() }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
 
-    // Автоматически вызываем клавиатуру при открытии экрана
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+    val textFieldState = rememberTextFieldState()
+    val searchBarState = rememberSearchBarState()
+    val scope = rememberCoroutineScope()
+
+    val inputField = @Composable {
+        SearchBarDefaults.InputField(
+            textFieldState = textFieldState,
+            searchBarState = searchBarState,
+            onSearch = { scope.launch { searchBarState.animateToCollapsed() } },
+            placeholder = { Text("Поиск...") },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Поиск") },
+            trailingIcon = {
+                if (textFieldState.text.isNotEmpty()) {
+                    IconButton(onClick = {
+                        textFieldState.edit { replace(0, length, "") }
+                    }) {
+                        Icon(Icons.Default.Close, "Очистить")
+                    }
+                }
+            }
+        )
+    }
+
+    LaunchedEffect(textFieldState) {
+        snapshotFlow { textFieldState.text }
+            .collect { text ->
+                viewModel.onQueryChange(text.toString())
+            }
     }
 
     SearchScreenContent(
-        onBackClick = onBackClick,
-        onMovieClick = onMovieClick,
-        onClearClick = viewModel::clearQuery,
+        onItemClick = onItemClick,
         uiState = uiState,
-        query = query,
-        focusRequester = focusRequester,
-        onValueChange = viewModel::onQueryChange
+        searchBarState = searchBarState,
+        scope = scope,
+        inputField = inputField,
+        onButtonClick = {},
+        selectedCategory = selectedCategory,
+        onCategorySelected = viewModel::onCategorySelected
     )
 
 }
@@ -87,110 +121,95 @@ fun SearchScreen(
 @Composable
 fun SearchScreenContent(
     modifier: Modifier = Modifier,
-    onBackClick: () -> Unit,
-    onMovieClick: (Int) -> Unit,
-    onClearClick: (String) -> Unit,
+    onItemClick: (Int) -> Unit,
+    searchBarState: SearchBarState,
+    onButtonClick: () -> Unit,
+    selectedCategory: SearchCategory,
+    onCategorySelected: (SearchCategory) -> Unit,
+    scope: CoroutineScope,
+    inputField: @Composable () -> Unit,
     uiState: SearchUiState,
-    query: String,
-    focusRequester: FocusRequester = remember { FocusRequester() },
-    onValueChange: (String) -> Unit
 ) {
-    Surface(
-    ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    colors = TopAppBarDefaults
-                        .topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
-                    title = {
-                        TextField(
-                            shape = RoundedCornerShape(24.dp),
-                            value = query,
-                            onValueChange = onValueChange,
-                            placeholder = { Text("Поиск...") },
-                            singleLine = true,
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                focusedIndicatorColor = MaterialTheme.colorScheme.secondaryContainer,
-                                unfocusedIndicatorColor = MaterialTheme.colorScheme.secondaryContainer
-                            ),
-                            trailingIcon = {
-                                if (query.isNotEmpty()) {
-                                    IconButton(onClick = { onClearClick(query) }) {
-                                        Icon(Icons.Default.Close, contentDescription = "Очистить")
-                                    }
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .focusRequester(focusRequester)
-                        )
-                    }
-                )
-            }
-        ) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                when (uiState) {
-                    is SearchUiState.Idle -> {
-
-                    }
-
-                    is SearchUiState.Loading -> {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                    }
-
-                    is SearchUiState.Empty -> {
+    Scaffold(
+        topBar =
+            {
+                Column{
+                    TopSearchBar(
+                        state = searchBarState,
+                        inputField = inputField,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    SearchCategoryRow(
+                        selectedCategory = selectedCategory,
+                        onCategorySelected = onCategorySelected
+                    )
+                }
+            }) { innerPadding ->
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            when (uiState) {
+                SearchUiState.Empty -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text(
-                            text = "Ничего не найдено",
-                            modifier = Modifier.align(Alignment.Center)
+                            text = "Ничего не найдено...",
+                            fontSize = 32.sp,
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
+                }
 
-                    is SearchUiState.Error -> {
-                        Text(
-                            text = uiState.message,
-                            modifier = Modifier.align(Alignment.Center),
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
+                is SearchUiState.Error -> {
+                    Text(
+                        modifier = Modifier.align(Alignment.Center),
+                        text = uiState.message,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
 
-                    is SearchUiState.Success -> {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(vertical = 16.dp),
-                        ) {
-                            items(uiState.movies, key = {
-                                val id = it.id
-                                id
-                            }) { movie ->
-                                VerticalMovie(
-                                    movie = movie,
-                                    onMovieClick = { onMovieClick(movie.id) }
-                                )
-                            }
+                SearchUiState.Idle -> {
+                }
+
+                SearchUiState.Loading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+
+                is SearchUiState.Success -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp)
+                    ) {
+                        items(items = uiState.items, key = {
+                            it
+                        }) { item ->
+                            VerticalItem(item = item, onItemClick = onItemClick, uiState = uiState)
                         }
                     }
                 }
             }
         }
-
     }
-
 
 }
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, name = "Dark Theme", showSystemUi = true)
 @Composable
 fun SearchScreenPreview() {
     CiMaTheme(darkTheme = true) {
         SearchScreenContent(
-            onMovieClick = {}, onBackClick = {}, uiState = SearchUiState.Idle, onClearClick = {},
-            onValueChange = {}, query = ""
+            onItemClick = {}, uiState = SearchUiState.Idle,
+            searchBarState = rememberSearchBarState(),
+            scope = rememberCoroutineScope(), inputField = @Composable {}, onButtonClick = {},
+            selectedCategory = SearchCategory.ALL, onCategorySelected = {}
         )
     }
 }
@@ -204,7 +223,7 @@ fun VerticalMoviePreview() {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) { innerPadding ->
-            VerticalMovie(
+            SearchMovieItem(
                 modifier = Modifier.padding(innerPadding),
                 movie = MovieUiModel(
                     id = 0, overview = "Overview", posterPath = "",
@@ -222,28 +241,42 @@ fun VerticalMoviePreview() {
 }
 
 @Composable
-fun SearchBar(
-    modifier: Modifier,
-    query: String
+fun VerticalItem(
+    modifier: Modifier = Modifier,
+    item: MultiSearchUiItem,
+    uiState: SearchUiState.Success,
+    onItemClick: (Int) -> Unit
 ) {
+    when (uiState.category) {
+        SearchCategory.ALL -> {
 
+        }
+        SearchCategory.MOVIES -> {
+            SearchMovieItem(movie = (item as MovieUiModel), onMovieClick = onItemClick)
+        }
+        SearchCategory.TV_SHOWS -> {
+            SearchTvShowItem(tvShow = (item as TvShowUiModel), onTvShowClick = onItemClick)
+        }
+        SearchCategory.PERSONS -> {
+            SearchPersonItem(person = (item as PersonUiModel), onPersonClick = onItemClick)
+        }
+    }
 }
 
 @Composable
-fun VerticalMovie(
+fun SearchMovieItem(
     modifier: Modifier = Modifier,
     movie: MovieUiModel,
-    onMovieClick: (MovieUiModel) -> Unit
+    onMovieClick: (Int) -> Unit
 ) {
     Card(
         modifier = modifier
-            .combinedClickable(
+            .clickable(
                 onClick = {
-                    onMovieClick(movie)
-                },
-                hapticFeedbackEnabled = true
+                    onMovieClick(movie.id)
+                }
             )
-            .height(150.dp)
+            .heightIn(min = 150.dp)
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Row(
@@ -302,4 +335,169 @@ fun VerticalMovie(
     }
 }
 
+@Composable
+fun SearchTvShowItem(
+    modifier: Modifier = Modifier,
+    tvShow: TvShowUiModel,
+    onTvShowClick: (Int) -> Unit
+) {
+    Card(
+        modifier = modifier
+            .clickable(
+                onClick = {
+                    onTvShowClick(tvShow.id)
+                }
+            )
+            .heightIn(min = 150.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            AsyncImage(
+                modifier = Modifier
+                    .width(75.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .aspectRatio(2f / 3f),
+                model = tvShow.posterPath,
+                placeholder = painterResource(R.drawable.ic_launcher_background),
+                fallback = painterResource(R.drawable.ic_launcher_background),
+                error = painterResource(R.drawable.ic_launcher_background),
+                contentDescription = "Movie Image",
+                contentScale = ContentScale.Crop
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        modifier = Modifier.width(150.dp),
+                        text = tvShow.name,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    DrawRating(voteAverage = tvShow.voteAverage)
+                }
+                Text(
+                    text = "${tvShow.firstAirDate} - ${tvShow.lastAirDate}",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = tvShow.overview,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
 
+
+@Composable
+fun SearchPersonItem(
+    modifier: Modifier = Modifier,
+    person: PersonUiModel,
+    onPersonClick: (Int) -> Unit
+) {
+    Card(
+        modifier = modifier
+            .clickable(
+                onClick = {
+                    onPersonClick(person.id)
+                }
+            )
+            .heightIn(min = 150.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            AsyncImage(
+                modifier = Modifier
+                    .width(75.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .aspectRatio(2f / 3f),
+                model = person.profilePath,
+                placeholder = painterResource(R.drawable.ic_launcher_background),
+                fallback = painterResource(R.drawable.ic_launcher_background),
+                error = painterResource(R.drawable.ic_launcher_background),
+                contentDescription = "Movie Image",
+                contentScale = ContentScale.Crop
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        modifier = Modifier.width(150.dp),
+                        text = person.name,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Text(
+                    text = person.birthday,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = person.knownForDepartment,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+
+@Composable
+fun SearchCategoryRow(
+    modifier: Modifier = Modifier,
+    selectedCategory: SearchCategory,
+    onCategorySelected: (SearchCategory) -> Unit
+) {
+    LazyRow(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = 32.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(SearchCategory.entries) { category ->
+            FilterChip(
+                selected = selectedCategory == category,
+                onClick = { onCategorySelected(category) },
+                label = { Text(category.title) }
+            )
+        }
+    }
+}

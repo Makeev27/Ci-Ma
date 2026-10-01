@@ -110,7 +110,7 @@ fun NavGraph() {
             composable(Screen.Search.route) {
                 SearchScreen(
                     onBackClick = { navController.popBackStack() },
-                    onMovieClick = { id ->
+                    onItemClick = { id ->
                         navController.navigate(Screen.Detail.createRoute(id)) {
                             popUpTo(Screen.Search.route) {
                                 inclusive = true

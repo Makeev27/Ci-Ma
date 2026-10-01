@@ -1,12 +1,10 @@
-package com.makeev.cima.domain.model
+package com.makeev.cima.presentation.screens.model
 
-data class Person(
-    val adult: Boolean,
-    val alsoKnownAs: List<String>,
+data class PersonDetailUiModel(
     val biography: String,
     val birthday: String,
     val deathday: String?,
-    val gender: Int,
+    val gender: String,
     val homepage: String?,
     val id: Int,
     val imdbId: String,
@@ -15,4 +13,4 @@ data class Person(
     val placeOfBirth: String,
     val popularity: Double,
     val profilePath: String
-) : MultiSearchItem
+)

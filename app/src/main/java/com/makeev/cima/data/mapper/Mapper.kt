@@ -5,13 +5,18 @@ import com.makeev.cima.data.remote.dto.MovieSimilarDto
 import com.makeev.cima.data.remote.dto.PopularMovieDto
 import com.makeev.cima.data.remote.dto.TrendingMovieDto
 import com.makeev.cima.data.remote.dto.response.MovieDetailResponse
-import com.makeev.cima.data.remote.dto.response.PersonResponse
+import com.makeev.cima.data.remote.dto.response.PersonResponseNew
+import com.makeev.cima.data.remote.dto.search.MovieDto
+import com.makeev.cima.data.remote.dto.search.PersonDto
+import com.makeev.cima.data.remote.dto.search.TvDto
+import com.makeev.cima.domain.model.Movie
 import com.makeev.cima.domain.model.MovieCast
 import com.makeev.cima.domain.model.MovieDetails
 import com.makeev.cima.domain.model.MovieSimilar
 import com.makeev.cima.domain.model.Person
 import com.makeev.cima.domain.model.PopularMovie
 import com.makeev.cima.domain.model.TrendingMovie
+import com.makeev.cima.domain.model.TvShow
 
 private const val IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"
 
@@ -88,7 +93,7 @@ fun MovieSimilarDto.toMovieSimilar(): MovieSimilar {
     )
 }
 
-fun PersonResponse.toPerson(): Person {
+fun PersonResponseNew.toPerson(): Person {
     return Person(
         adult = adult,
         alsoKnownAs = alsoKnownAs,
@@ -105,4 +110,76 @@ fun PersonResponse.toPerson(): Person {
         popularity = popularity,
         profilePath = profilePath
     )
+}
+
+fun MovieDto.toPopularMovie(): PopularMovie {
+    return PopularMovie(
+        id = id,
+        overview = overview,
+        posterPath = posterPath,
+        releaseDate = releaseDate,
+        title = title,
+        voteAverage = voteAverage,
+        originalLanguage = originalLanguage,
+        popularity = popularity,
+        voteCount = voteCount
+    )
+}
+
+fun MovieDto.toMovie(): Movie {
+    return Movie(
+        id = id,
+        overview = overview,
+        posterPath = posterPath,
+        releaseDate = releaseDate,
+        title = title,
+        voteAverage = voteAverage,
+        originalLanguage = originalLanguage,
+        popularity = popularity,
+        voteCount = voteCount,
+        runtime = runtime,
+        genres = genres.map { it.toString() }
+    )
+}
+
+fun TvDto.toTvShows(): TvShow {
+    return TvShow(
+        backdropPath = backdropPath,
+        createdBy = createdBy,
+        episodeRunTime = episodeRunTime,
+        firstAirDate = firstAirDate,
+        genres = genres,
+        id = id,
+        inProduction = inProduction,
+        languages = languages,
+        name = name,
+        numberOfEpisodes = numberOfEpisodes,
+        numberOfSeasons = numberOfSeasons,
+        originalName = originalName,
+        popularity = popularity,
+        posterPath = posterPath,
+        voteAverage = voteAverage,
+        lastAirDate = lastAirDate,
+        overview = overview
+    )
+}
+
+fun PersonDto.toPerson(): Person {
+    return Person(
+        adult = adult,
+        alsoKnownAs = alsoKnownAs,
+        biography = biography,
+        birthday = birthday,
+        deathday = deathday,
+        gender = gender,
+        homepage = homepage,
+        id = id,
+        imdbId = imdbId,
+        knownForDepartment = knownForDepartment,
+        name = name,
+        placeOfBirth = placeOfBirth,
+        popularity = popularity,
+        profilePath = profilePath
+    )
+
 }
